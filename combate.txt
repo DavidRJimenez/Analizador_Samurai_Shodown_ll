@@ -1,5 +1,3 @@
 Haohmaru Nakoruru
-A derecha
-B agacharse
-special pow_max
-A izquierda
+MOVIMIENTO CORTE_DEBIL derecha
+FIN_MOVIMIENTOS

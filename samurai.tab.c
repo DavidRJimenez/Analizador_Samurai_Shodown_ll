@@ -71,12 +71,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 void yyerror(const char *s);
 int yylex();
-extern FILE *yyin;  // Declaración de yyin
+extern FILE *yyin;
+#define YYSTYPE char*
 
-#line 80 "samurai.tab.c"
+#line 81 "samurai.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -142,12 +143,16 @@ enum yysymbol_kind_t
   YYSYMBOL_CANCELAR_BURLA = 35,            /* CANCELAR_BURLA  */
   YYSYMBOL_MOV_ESPECIAL = 36,              /* MOV_ESPECIAL  */
   YYSYMBOL_POW_MAXIMO = 37,                /* POW_MAXIMO  */
-  YYSYMBOL_YYACCEPT = 38,                  /* $accept  */
-  YYSYMBOL_combate = 39,                   /* combate  */
-  YYSYMBOL_seleccion = 40,                 /* seleccion  */
-  YYSYMBOL_jugadores = 41,                 /* jugadores  */
-  YYSYMBOL_movimientos = 42,               /* movimientos  */
-  YYSYMBOL_movimiento = 43                 /* movimiento  */
+  YYSYMBOL_NEWLINE = 38,                   /* NEWLINE  */
+  YYSYMBOL_MOVIMIENTO = 39,                /* MOVIMIENTO  */
+  YYSYMBOL_FIN_MOVIMIENTOS = 40,           /* FIN_MOVIMIENTOS  */
+  YYSYMBOL_YYACCEPT = 41,                  /* $accept  */
+  YYSYMBOL_combate = 42,                   /* combate  */
+  YYSYMBOL_jugadores = 43,                 /* jugadores  */
+  YYSYMBOL_movimientos = 44,               /* movimientos  */
+  YYSYMBOL_movimiento = 45,                /* movimiento  */
+  YYSYMBOL_accion = 46,                    /* accion  */
+  YYSYMBOL_direccion = 47                  /* direccion  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -473,21 +478,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  13
+#define YYFINAL  7
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   59
+#define YYLAST   24
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  38
+#define YYNTOKENS  41
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  6
+#define YYNNTS  7
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  34
+#define YYNRULES  17
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  45
+#define YYNSTATES  31
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   292
+#define YYMAXUTOK   295
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -530,17 +535,15 @@ static const yytype_int8 yytranslate[] =
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37
+      35,    36,    37,    38,    39,    40
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    25,    25,    29,    30,    31,    32,    33,    34,    37,
-      38,    39,    40,    41,    42,    46,    47,    51,    52,    53,
-      54,    55,    56,    57,    58,    59,    60,    61,    62,    63,
-      64,    65,    66,    67,    68
+       0,    31,    31,    36,    38,    43,    45,    47,    52,    57,
+      59,    61,    63,    65,    67,    69,    74,    76
 };
 #endif
 
@@ -563,8 +566,8 @@ static const char *const yytname[] =
   "CORTE_FUERTE", "PATADA_DEBIL", "PATADA_MEDIA", "PATADA_FUERTE", "SALTO",
   "DERECHA", "IZQUIERDA", "AGACHARSE", "CORRER", "RETIRADA", "ESQUIVAR",
   "RODAR", "BURLA", "CANCELAR_BURLA", "MOV_ESPECIAL", "POW_MAXIMO",
-  "$accept", "combate", "seleccion", "jugadores", "movimientos",
-  "movimiento", YY_NULLPTR
+  "NEWLINE", "MOVIMIENTO", "FIN_MOVIMIENTOS", "$accept", "combate",
+  "jugadores", "movimientos", "movimiento", "accion", "direccion", YY_NULLPTR
 };
 
 static const char *
@@ -574,12 +577,12 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-2)
+#define YYPACT_NINF (-27)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-16)
+#define YYTABLE_NINF (-1)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -588,11 +591,10 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -1,    11,     5,    14,    15,    56,     3,    -2,    -2,    -2,
-      -2,    -2,    -2,    -2,     8,     7,    51,    17,    -2,    -2,
-      -2,    -2,    -2,    -2,    -2,    -2,    -2,    -2,    -2,    -2,
-      -2,    -2,    -2,    -2,    -2,    -2,    -2,    -2,    -2,    -2,
-      -2,    -2,    -2,     0,    -2
+       8,    11,    16,    20,   -17,   -27,   -27,   -27,   -16,   -20,
+     -26,   -27,   -10,   -10,   -10,   -10,   -10,   -10,   -15,   -27,
+     -27,   -27,   -27,   -27,   -27,   -27,   -27,   -27,   -27,   -27,
+     -27
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -600,23 +602,22 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     0,     0,     0,     0,     3,     5,     4,
-       8,     6,     7,     1,     0,     0,     0,     0,     9,    11,
-      10,    13,    12,    14,    34,    17,    18,    19,    20,    21,
-      22,    23,    24,    25,    26,    27,    28,    29,    30,    31,
-      32,    33,     2,     0,    16
+       0,     0,     0,     0,     0,     3,     4,     1,     7,     0,
+       0,     5,     0,     0,     0,     0,     0,     0,     0,     8,
+       2,     6,    16,    17,     9,    10,    11,    12,    13,    14,
+      15
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -2,    -2,    -2,    -2,    16,    -2
+     -27,   -27,   -27,   -27,    14,   -27,    -7
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     5,     6,    17,    42,    43
+       0,     3,     4,    10,    11,    19,    24
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -624,51 +625,40 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-     -15,    24,     1,     2,     3,     4,    14,    15,     9,    16,
-      20,    10,    18,    21,    19,     7,     8,    11,    24,    12,
-      25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37,    38,    39,    40,    41,    25,    26,    27,
-      28,    29,    30,    31,    32,    33,    34,    35,    36,    37,
-      38,    39,    40,    41,    22,    23,    13,     0,     0,    44
+      12,    13,    14,    15,    16,    17,    25,    26,    27,    28,
+      29,     1,     2,     9,    20,     5,    18,    22,    23,     6,
+       7,     8,    30,     9,    21
 };
 
 static const yytype_int8 yycheck[] =
 {
-       0,     1,     3,     4,     5,     6,     3,     4,     3,     6,
-       3,     6,     4,     6,     6,     4,     5,     3,     1,     4,
-      20,    21,    22,    23,    24,    25,    26,    27,    28,    29,
-      30,    31,    32,    33,    34,    35,    36,    20,    21,    22,
-      23,    24,    25,    26,    27,    28,    29,    30,    31,    32,
-      33,    34,    35,    36,     3,     4,     0,    -1,    -1,    43
+      20,    21,    22,    23,    24,    25,    13,    14,    15,    16,
+      17,     3,     4,    39,    40,     4,    36,    27,    28,     3,
+       0,    38,    37,    39,    10
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,     4,     5,     6,    39,    40,     4,     5,     3,
-       6,     3,     4,     0,     3,     4,     6,    41,     4,     6,
-       3,     6,     3,     4,     1,    20,    21,    22,    23,    24,
-      25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    42,    43,    42
+       0,     3,     4,    42,    43,     4,     3,     0,    38,    39,
+      44,    45,    20,    21,    22,    23,    24,    25,    36,    46,
+      40,    45,    27,    28,    47,    47,    47,    47,    47,    47,
+      37
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    38,    39,    40,    40,    40,    40,    40,    40,    41,
-      41,    41,    41,    41,    41,    42,    42,    43,    43,    43,
-      43,    43,    43,    43,    43,    43,    43,    43,    43,    43,
-      43,    43,    43,    43,    43
+       0,    41,    42,    43,    43,    44,    44,    44,    45,    46,
+      46,    46,    46,    46,    46,    46,    47,    47
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     3,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     1,     2,     1,     1,     1,
-       1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     1,     1
+       0,     2,     4,     2,     2,     1,     2,     0,     2,     2,
+       2,     2,     2,     2,     2,     2,     1,     1
 };
 
 
@@ -1131,164 +1121,104 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 2: /* combate: seleccion jugadores movimientos  */
-#line 25 "samurai.y"
-                                         { printf("Combate válido\n"); }
-#line 1138 "samurai.tab.c"
-    break;
-
-  case 3: /* seleccion: HAOHMARU NAKORURU  */
-#line 29 "samurai.y"
-                      { printf("Personajes seleccionados: %s, %s\n", "Haohmaru", "Nakoruru"); }
-#line 1144 "samurai.tab.c"
-    break;
-
-  case 4: /* seleccion: NAKORURU HAOHMARU  */
-#line 30 "samurai.y"
-                        { printf("Personajes seleccionados: %s, %s\n", "Nakoruru", "Haohmaru"); }
-#line 1150 "samurai.tab.c"
-    break;
-
-  case 5: /* seleccion: HAOHMARU UKYO  */
+  case 2: /* combate: jugadores NEWLINE movimientos FIN_MOVIMIENTOS  */
 #line 31 "samurai.y"
-                    { printf("Personajes seleccionados: %s, %s\n", "Haohmaru", "Ukyo"); }
-#line 1156 "samurai.tab.c"
+                                                       { printf("Movimientos reconocidos: %s\n", yyvsp[-1]); printf("Combate válido\n"); }
+#line 1128 "samurai.tab.c"
     break;
 
-  case 6: /* seleccion: UKYO HAOHMARU  */
-#line 32 "samurai.y"
-                    { printf("Personajes seleccionados: %s, %s\n", "Ukyo", "Haohmaru"); }
-#line 1162 "samurai.tab.c"
+  case 3: /* jugadores: HAOHMARU NAKORURU  */
+#line 36 "samurai.y"
+                             { printf("Personajes seleccionados: %s, %s\n", "Haohmaru", "Nakoruru"); }
+#line 1134 "samurai.tab.c"
     break;
 
-  case 7: /* seleccion: CHARLOTTE NAKORURU  */
-#line 33 "samurai.y"
-                         { printf("Personajes seleccionados: %s, %s\n", "Charlotte", "Nakoruru"); }
-#line 1168 "samurai.tab.c"
+  case 4: /* jugadores: NAKORURU HAOHMARU  */
+#line 38 "samurai.y"
+                             { printf("Personajes seleccionados: %s, %s\n", "Nakoruru", "Haohmaru"); }
+#line 1140 "samurai.tab.c"
     break;
 
-  case 8: /* seleccion: NAKORURU CHARLOTTE  */
-#line 34 "samurai.y"
-                         { printf("Personajes seleccionados: %s, %s\n", "Nakoruru", "Charlotte"); }
-#line 1174 "samurai.tab.c"
+  case 5: /* movimientos: movimiento  */
+#line 43 "samurai.y"
+                        { yyval = yyvsp[0]; }
+#line 1146 "samurai.tab.c"
     break;
 
-  case 15: /* movimientos: movimiento  */
-#line 46 "samurai.y"
-               { /* Aquí se reconoce el movimiento */ }
-#line 1180 "samurai.tab.c"
+  case 6: /* movimientos: movimientos movimiento  */
+#line 45 "samurai.y"
+                                    { yyval = strcat(yyvsp[-1], yyvsp[0]); free(yyvsp[0]); }
+#line 1152 "samurai.tab.c"
     break;
 
-  case 17: /* movimiento: CORTE_DEBIL  */
-#line 51 "samurai.y"
-                      { printf("Movimiento reconocido: Corte Débil\n"); }
-#line 1186 "samurai.tab.c"
+  case 7: /* movimientos: %empty  */
+#line 47 "samurai.y"
+                         { yyval = strdup(""); }
+#line 1158 "samurai.tab.c"
     break;
 
-  case 18: /* movimiento: CORTE_MEDIO  */
+  case 8: /* movimiento: MOVIMIENTO accion  */
 #line 52 "samurai.y"
-                      { printf("Movimiento reconocido: Corte Medio\n"); }
-#line 1192 "samurai.tab.c"
+                              { yyval = yyvsp[0]; }
+#line 1164 "samurai.tab.c"
     break;
 
-  case 19: /* movimiento: CORTE_FUERTE  */
-#line 53 "samurai.y"
-                      { printf("Movimiento reconocido: Corte Fuerte\n"); }
-#line 1198 "samurai.tab.c"
-    break;
-
-  case 20: /* movimiento: PATADA_DEBIL  */
-#line 54 "samurai.y"
-                      { printf("Movimiento reconocido: Patada Débil\n"); }
-#line 1204 "samurai.tab.c"
-    break;
-
-  case 21: /* movimiento: PATADA_MEDIA  */
-#line 55 "samurai.y"
-                       { printf("Movimiento reconocido: Patada Media\n"); }
-#line 1210 "samurai.tab.c"
-    break;
-
-  case 22: /* movimiento: PATADA_FUERTE  */
-#line 56 "samurai.y"
-                      { printf("Movimiento reconocido: Patada Fuerte\n"); }
-#line 1216 "samurai.tab.c"
-    break;
-
-  case 23: /* movimiento: SALTO  */
+  case 9: /* accion: CORTE_DEBIL direccion  */
 #line 57 "samurai.y"
-                      { printf("Movimiento reconocido: Salto\n"); }
-#line 1222 "samurai.tab.c"
+                              { yyval = strdup("Corte Débil "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
+#line 1170 "samurai.tab.c"
     break;
 
-  case 24: /* movimiento: DERECHA  */
-#line 58 "samurai.y"
-                      { printf("Movimiento reconocido: Derecha\n"); }
-#line 1228 "samurai.tab.c"
-    break;
-
-  case 25: /* movimiento: IZQUIERDA  */
+  case 10: /* accion: CORTE_MEDIO direccion  */
 #line 59 "samurai.y"
-                      { printf("Movimiento reconocido: Izquierda\n"); }
-#line 1234 "samurai.tab.c"
+                              { yyval = strdup("Corte Medio "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
+#line 1176 "samurai.tab.c"
     break;
 
-  case 26: /* movimiento: AGACHARSE  */
-#line 60 "samurai.y"
-                      { printf("Movimiento reconocido: Agacharse\n"); }
-#line 1240 "samurai.tab.c"
-    break;
-
-  case 27: /* movimiento: CORRER  */
+  case 11: /* accion: CORTE_FUERTE direccion  */
 #line 61 "samurai.y"
-                      { printf("Movimiento reconocido: Correr\n"); }
-#line 1246 "samurai.tab.c"
+                               { yyval = strdup("Corte Fuerte "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
+#line 1182 "samurai.tab.c"
     break;
 
-  case 28: /* movimiento: RETIRADA  */
-#line 62 "samurai.y"
-                      { printf("Movimiento reconocido: Retirada\n"); }
-#line 1252 "samurai.tab.c"
-    break;
-
-  case 29: /* movimiento: ESQUIVAR  */
+  case 12: /* accion: PATADA_DEBIL direccion  */
 #line 63 "samurai.y"
-                      { printf("Movimiento reconocido: Esquivar\n"); }
-#line 1258 "samurai.tab.c"
+                               { yyval = strdup("Patada Débil "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
+#line 1188 "samurai.tab.c"
     break;
 
-  case 30: /* movimiento: RODAR  */
-#line 64 "samurai.y"
-                      { printf("Movimiento reconocido: Rodar\n"); }
-#line 1264 "samurai.tab.c"
-    break;
-
-  case 31: /* movimiento: BURLA  */
+  case 13: /* accion: PATADA_MEDIA direccion  */
 #line 65 "samurai.y"
-                      { printf("Movimiento reconocido: Burla\n"); }
-#line 1270 "samurai.tab.c"
+                               { yyval = strdup("Patada Media "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
+#line 1194 "samurai.tab.c"
     break;
 
-  case 32: /* movimiento: CANCELAR_BURLA  */
-#line 66 "samurai.y"
-                      { printf("Movimiento reconocido: Cancelar Burla\n"); }
-#line 1276 "samurai.tab.c"
-    break;
-
-  case 33: /* movimiento: MOV_ESPECIAL  */
+  case 14: /* accion: PATADA_FUERTE direccion  */
 #line 67 "samurai.y"
-                      { printf("Movimiento reconocido: Especial\n"); }
-#line 1282 "samurai.tab.c"
+                                { yyval = strdup("Patada Fuerte "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
+#line 1200 "samurai.tab.c"
     break;
 
-  case 34: /* movimiento: error  */
-#line 68 "samurai.y"
-            { yyerror("Movimiento no reconocido"); }
-#line 1288 "samurai.tab.c"
+  case 15: /* accion: MOV_ESPECIAL POW_MAXIMO  */
+#line 69 "samurai.y"
+                                { yyval = strdup("Especial con Poder Máximo"); }
+#line 1206 "samurai.tab.c"
+    break;
+
+  case 16: /* direccion: DERECHA  */
+#line 74 "samurai.y"
+                   { yyval = strdup("a la derecha"); }
+#line 1212 "samurai.tab.c"
+    break;
+
+  case 17: /* direccion: IZQUIERDA  */
+#line 76 "samurai.y"
+                     { yyval = strdup("a la izquierda"); }
+#line 1218 "samurai.tab.c"
     break;
 
 
-#line 1292 "samurai.tab.c"
+#line 1222 "samurai.tab.c"
 
       default: break;
     }
@@ -1481,10 +1411,9 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 71 "samurai.y"
+#line 79 "samurai.y"
 
 
-// Función para manejar errores
 void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
 }
@@ -1496,9 +1425,8 @@ int main(int argc, char **argv) {
             perror("Error al abrir el archivo");
             return 1;
         }
-        yyin = archivo;  // Asignar el archivo de entrada
+        yyin = archivo;
     }
-
-    yyparse();  // Llama al analizador sintáctico
+    yyparse();
     return 0;
 }

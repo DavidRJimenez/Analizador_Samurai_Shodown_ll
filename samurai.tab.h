@@ -88,7 +88,10 @@ extern int yydebug;
     BURLA = 289,                   /* BURLA  */
     CANCELAR_BURLA = 290,          /* CANCELAR_BURLA  */
     MOV_ESPECIAL = 291,            /* MOV_ESPECIAL  */
-    POW_MAXIMO = 292               /* POW_MAXIMO  */
+    POW_MAXIMO = 292,              /* POW_MAXIMO  */
+    NEWLINE = 293,                 /* NEWLINE  */
+    MOVIMIENTO = 294,              /* MOVIMIENTO  */
+    FIN_MOVIMIENTOS = 295          /* FIN_MOVIMIENTOS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

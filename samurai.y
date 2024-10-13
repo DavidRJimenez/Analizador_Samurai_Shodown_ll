@@ -1,10 +1,11 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 void yyerror(const char *s);
 int yylex();
-extern FILE *yyin;  // Declaración de yyin
+extern FILE *yyin;
+#define YYSTYPE char*
 %}
 
 // Definir tokens
@@ -16,61 +17,67 @@ extern FILE *yyin;  // Declaración de yyin
 %token PATADA_DEBIL PATADA_MEDIA PATADA_FUERTE
 %token SALTO DERECHA IZQUIERDA AGACHARSE
 %token CORRER RETIRADA ESQUIVAR RODAR
-%token BURLA CANCELAR_BURLA MOV_ESPECIAL
-%token POW_MAXIMO
+%token BURLA CANCELAR_BURLA MOV_ESPECIAL POW_MAXIMO
+%token NEWLINE MOVIMIENTO FIN_MOVIMIENTOS
+
+%left CORTE_DEBIL CORTE_MEDIO CORTE_FUERTE
+%left PATADA_DEBIL PATADA_MEDIA PATADA_FUERTE
+%left SALTO DERECHA IZQUIERDA AGACHARSE
+%left CORRER RETIRADA ESQUIVAR RODAR
+%left BURLA CANCELAR_BURLA MOV_ESPECIAL POW_MAXIMO
 
 %%
 
-// Reglas de gramática para el combate
-combate: seleccion jugadores movimientos { printf("Combate válido\n"); }
+combate: jugadores NEWLINE movimientos FIN_MOVIMIENTOS { printf("Movimientos reconocidos: %s\n", $3); printf("Combate válido\n"); }
+
        ;
 
-seleccion:
-    HAOHMARU NAKORURU { printf("Personajes seleccionados: %s, %s\n", "Haohmaru", "Nakoruru"); }
-    | NAKORURU HAOHMARU { printf("Personajes seleccionados: %s, %s\n", "Nakoruru", "Haohmaru"); }
-    | HAOHMARU UKYO { printf("Personajes seleccionados: %s, %s\n", "Haohmaru", "Ukyo"); }
-    | UKYO HAOHMARU { printf("Personajes seleccionados: %s, %s\n", "Ukyo", "Haohmaru"); }
-    | CHARLOTTE NAKORURU { printf("Personajes seleccionados: %s, %s\n", "Charlotte", "Nakoruru"); }
-    | NAKORURU CHARLOTTE { printf("Personajes seleccionados: %s, %s\n", "Nakoruru", "Charlotte"); }
-    ;
 
-jugadores: HAOHMARU NAKORURU
-         | NAKORURU HAOHMARU
-         | HAOHMARU CHARLOTTE
-         | CHARLOTTE HAOHMARU
-         | NAKORURU CHARLOTTE
-         | CHARLOTTE NAKORURU
+jugadores: HAOHMARU NAKORURU { printf("Personajes seleccionados: %s, %s\n", "Haohmaru", "Nakoruru"); }
+
+         | NAKORURU HAOHMARU { printf("Personajes seleccionados: %s, %s\n", "Nakoruru", "Haohmaru"); }
+
          ;
 
-movimientos:
-    movimiento { /* Aquí se reconoce el movimiento */ }
-    | movimiento movimientos
-    ;
 
-movimiento:
-    CORTE_DEBIL       { printf("Movimiento reconocido: Corte Débil\n"); }
-    | CORTE_MEDIO     { printf("Movimiento reconocido: Corte Medio\n"); }
-    | CORTE_FUERTE    { printf("Movimiento reconocido: Corte Fuerte\n"); }
-    | PATADA_DEBIL    { printf("Movimiento reconocido: Patada Débil\n"); }
-    | PATADA_MEDIA     { printf("Movimiento reconocido: Patada Media\n"); }
-    | PATADA_FUERTE   { printf("Movimiento reconocido: Patada Fuerte\n"); }
-    | SALTO           { printf("Movimiento reconocido: Salto\n"); }
-    | DERECHA         { printf("Movimiento reconocido: Derecha\n"); }
-    | IZQUIERDA       { printf("Movimiento reconocido: Izquierda\n"); }
-    | AGACHARSE       { printf("Movimiento reconocido: Agacharse\n"); }
-    | CORRER          { printf("Movimiento reconocido: Correr\n"); }
-    | RETIRADA        { printf("Movimiento reconocido: Retirada\n"); }
-    | ESQUIVAR        { printf("Movimiento reconocido: Esquivar\n"); }
-    | RODAR           { printf("Movimiento reconocido: Rodar\n"); }
-    | BURLA           { printf("Movimiento reconocido: Burla\n"); }
-    | CANCELAR_BURLA  { printf("Movimiento reconocido: Cancelar Burla\n"); }
-    | MOV_ESPECIAL    { printf("Movimiento reconocido: Especial\n"); }
-    | error { yyerror("Movimiento no reconocido"); }
-    ;
+movimientos: movimiento { $$ = $1; }
 
+           | movimientos movimiento { $$ = strcat($1, $2); free($2); }
+
+           | /* empty */ { $$ = strdup(""); }
+
+           ;
+
+
+movimiento: MOVIMIENTO accion { $$ = $2; }
+
+          ;
+
+
+accion: CORTE_DEBIL direccion { $$ = strdup("Corte Débil "); $$ = strcat($$, $2); free($2); }
+
+      | CORTE_MEDIO direccion { $$ = strdup("Corte Medio "); $$ = strcat($$, $2); free($2); }
+
+      | CORTE_FUERTE direccion { $$ = strdup("Corte Fuerte "); $$ = strcat($$, $2); free($2); }
+
+      | PATADA_DEBIL direccion { $$ = strdup("Patada Débil "); $$ = strcat($$, $2); free($2); }
+
+      | PATADA_MEDIA direccion { $$ = strdup("Patada Media "); $$ = strcat($$, $2); free($2); }
+
+      | PATADA_FUERTE direccion { $$ = strdup("Patada Fuerte "); $$ = strcat($$, $2); free($2); }
+
+      | MOV_ESPECIAL POW_MAXIMO { $$ = strdup("Especial con Poder Máximo"); }
+
+      ;
+
+
+direccion: DERECHA { $$ = strdup("a la derecha"); }
+
+         | IZQUIERDA { $$ = strdup("a la izquierda"); }
+
+         ;
 %%
 
-// Función para manejar errores
 void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
 }
@@ -82,9 +89,8 @@ int main(int argc, char **argv) {
             perror("Error al abrir el archivo");
             return 1;
         }
-        yyin = archivo;  // Asignar el archivo de entrada
+        yyin = archivo;
     }
-
-    yyparse();  // Llama al analizador sintáctico
+    yyparse();
     return 0;
 }
