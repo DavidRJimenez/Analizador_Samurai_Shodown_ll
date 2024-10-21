@@ -23,8 +23,9 @@ char* concat(const char* str1, const char* str2) {
     return result;
 }
 
-int vida_1 = 100; // Barra de vida de Haohmaru
-int vida_2 = 100; // Barra de vida de Nakoruru
+// Barras de vida para los personajes
+int vida_1 = 100; // Barra de vida del jugador 1
+int vida_2 = 100; // Barra de vida del jugador 2
 
 void aplicar_dano(const char *accion, int *vida) {
     if (strcmp(accion, "Corte Débil") == 0) {
@@ -66,6 +67,10 @@ void aplicar_dano(const char *accion, int *vida) {
 combate: jugadores NEWLINE movimientos FIN_MOVIMIENTOS {
             printf("Movimientos reconocidos: %s\n", $3);
             printf("Combate válido\n");
+            // Muestra la vida final de ambos personajes
+            printf("Vida de %s: %d\n", $1, vida_1);
+            printf("Vida de %s: %d\n", $2, vida_2);
+
         }
        ;
 
@@ -75,10 +80,23 @@ jugadores: personaje personaje {
                     YYERROR;
                 } else {
                     printf("Personajes seleccionados: %s, %s\n", $1, $2);
+                    // Asignar vida según el personaje
+                    if (strcmp($1, "Haohmaru") == 0) {
+                        vida_1 = 100;
+                    } else if (strcmp($1, "Nakoruru") == 0) {
+                        vida_1 = 100;
+                    } 
+                    // Agregar más personajes aquí
+                    if (strcmp($2, "Haohmaru") == 0) {
+                        vida_2 = 100;
+                    } else if (strcmp($2, "Nakoruru") == 0) {
+                        vida_2 = 100;
+                    } 
+                    // Agregar más personajes aquí
                 }
+                // Asegúrate de asignar correctamente los nombres de los personajes
+                $$ = concat($1, $2); // Asigna el nombre de ambos personajes
             }
-         ;
-
 
 personaje: HAOHMARU { $$ = "Haohmaru"; }
          | NAKORURU { $$ = "Nakoruru"; }
@@ -116,7 +134,11 @@ movimientos: movimiento {
             }
            ;
 
-movimiento: MOVIMIENTO accion { $$ = $2; }
+movimiento: MOVIMIENTO accion { 
+                // Aplicar daño al jugador 1
+                aplicar_dano($2, &vida_1); 
+                $$ = $2; 
+            }
           ;
 
 accion: CORTE_DEBIL direccion { 
@@ -200,7 +222,7 @@ accion: CORTE_DEBIL direccion {
             char *temp = malloc(strlen("Especial con Poder Máximo") + 1);
             if (temp) {
                 strcpy(temp, "Especial con Poder Máximo");
-                $$ = temp; // Asigna la cadena al resultado
+                $$ = temp; // Asigna la cadena a $$
             } else {
                 yyerror("Error de memoria");
                 YYERROR;
@@ -208,25 +230,27 @@ accion: CORTE_DEBIL direccion {
         }
       ;
 
-      
-direccion: DERECHA { $$ = strdup("a la derecha"); }
-         | IZQUIERDA { $$ = strdup("a la izquierda"); }
+direccion: DERECHA { $$ = "derecha"; }
+         | IZQUIERDA { $$ = "izquierda"; }
+         | AGACHARSE { $$ = "agachado"; }
+         | CORRER { $$ = "corriendo"; }
+         | RETIRADA { $$ = "retirándose"; }
+         | ESQUIVAR { $$ = "esquivando"; }
+         | RODAR { $$ = "rodando"; }
          ;
+
 %%
+int main(int argc, char **argv) {
+    if (argc > 1) {
+        yyin = fopen(argv[1], "r");
+        if (!yyin) {
+            fprintf(stderr, "Error al abrir el archivo\n");
+            return 1;
+        }
+    }
+    return yyparse();
+}
 
 void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
-}
-
-int main(int argc, char **argv) {
-    if (argc > 1) {
-        FILE *archivo = fopen(argv[1], "r");
-        if (!archivo) {
-            perror("Error al abrir el archivo");
-            return 1;
-        }
-        yyin = archivo;
-    }
-    yyparse();
-    return 0;
 }
