@@ -2,10 +2,47 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 void yyerror(const char *s);
 int yylex();
 extern FILE *yyin;
+
 #define YYSTYPE char*
+
+// Función auxiliar para concatenar cadenas de forma segura
+char* concat(const char* str1, const char* str2) {
+    size_t len1 = strlen(str1);
+    size_t len2 = strlen(str2);
+    char* result = (char*) malloc(len1 + len2 + 1);
+    if (!result) {
+        fprintf(stderr, "Error de memoria\n");
+        exit(1);
+    }
+    strcpy(result, str1);
+    strcat(result, str2);
+    return result;
+}
+
+int vida_1 = 100; // Barra de vida de Haohmaru
+int vida_2 = 100; // Barra de vida de Nakoruru
+
+void aplicar_dano(const char *accion, int *vida) {
+    if (strcmp(accion, "Corte Débil") == 0) {
+        *vida -= 10;
+    } else if (strcmp(accion, "Corte Medio") == 0) {
+        *vida -= 15;
+    } else if (strcmp(accion, "Corte Fuerte") == 0) {
+        *vida -= 20;
+    } else if (strcmp(accion, "Patada Débil") == 0) {
+        *vida -= 8;
+    } else if (strcmp(accion, "Patada Media") == 0) {
+        *vida -= 12;
+    } else if (strcmp(accion, "Patada Fuerte") == 0) {
+        *vida -= 18;
+    } else if (strcmp(accion, "Especial con Poder Máximo") == 0) {
+        *vida -= 30;
+    }
+}
 %}
 
 // Definir tokens
@@ -13,12 +50,9 @@ extern FILE *yyin;
 %token JUBEI TERREMOTO HANZO KYOSHIRO WAN_FU
 %token GENAN GENJURO CHAMCHAM NEINHALT_SIEGER
 %token NICOTINE KUROKO MIZUKI
-%token CORTE_DEBIL CORTE_MEDIO CORTE_FUERTE
-%token PATADA_DEBIL PATADA_MEDIA PATADA_FUERTE
-%token SALTO DERECHA IZQUIERDA AGACHARSE
-%token CORRER RETIRADA ESQUIVAR RODAR
-%token BURLA CANCELAR_BURLA MOV_ESPECIAL POW_MAXIMO
-%token NEWLINE MOVIMIENTO FIN_MOVIMIENTOS
+%token CORTE_DEBIL CORTE_MEDIO CORTE_FUERTE PATADA_DEBIL PATADA_MEDIA PATADA_FUERTE
+%token SALTO DERECHA IZQUIERDA AGACHARSE CORRER RETIRADA ESQUIVAR RODAR
+%token BURLA CANCELAR_BURLA MOV_ESPECIAL POW_MAXIMO NEWLINE MOVIMIENTO FIN_MOVIMIENTOS
 
 %left CORTE_DEBIL CORTE_MEDIO CORTE_FUERTE
 %left PATADA_DEBIL PATADA_MEDIA PATADA_FUERTE
@@ -28,53 +62,155 @@ extern FILE *yyin;
 
 %%
 
-combate: jugadores NEWLINE movimientos FIN_MOVIMIENTOS { printf("Movimientos reconocidos: %s\n", $3); printf("Combate válido\n"); }
 
+combate: jugadores NEWLINE movimientos FIN_MOVIMIENTOS {
+            printf("Movimientos reconocidos: %s\n", $3);
+            printf("Combate válido\n");
+        }
        ;
 
-
-jugadores: HAOHMARU NAKORURU { printf("Personajes seleccionados: %s, %s\n", "Haohmaru", "Nakoruru"); }
-
-         | NAKORURU HAOHMARU { printf("Personajes seleccionados: %s, %s\n", "Nakoruru", "Haohmaru"); }
-
+jugadores: personaje personaje {
+                if (strcmp($1, $2) == 0) {
+                    yyerror("Error: Los personajes no pueden ser los mismos.");
+                    YYERROR;
+                } else {
+                    printf("Personajes seleccionados: %s, %s\n", $1, $2);
+                }
+            }
          ;
 
 
-movimientos: movimiento { $$ = $1; }
+personaje: HAOHMARU { $$ = "Haohmaru"; }
+         | NAKORURU { $$ = "Nakoruru"; }
+         | UKYO { $$ = "Ukyo"; }
+         | CHARLOTTE { $$ = "Charlotte"; }
+         | GALFORD { $$ = "Galford"; }
+         | JUBEI { $$ = "Jubei"; }
+         | TERREMOTO { $$ = "Terremoto"; }
+         | HANZO { $$ = "Hanzo"; }
+         | KYOSHIRO { $$ = "Kyoshiro"; }
+         | WAN_FU { $$ = "Wan-Fu"; }
+         | GENAN { $$ = "Genan"; }
+         | GENJURO { $$ = "Genjuro"; }
+         | CHAMCHAM { $$ = "Cham Cham"; }
+         | NEINHALT_SIEGER { $$ = "Neinhalt Sieger"; }
+         | NICOTINE { $$ = "Nicotine"; }
+         | KUROKO { $$ = "Kuroko"; }
+         | MIZUKI { $$ = "Mizuki"; }
+         ;
 
-           | movimientos movimiento { $$ = strcat($1, $2); free($2); }
-
-           | /* empty */ { $$ = strdup(""); }
-
+movimientos: movimiento { 
+                $$ = strdup($1); // Asigna memoria para la primera cadena
+            }
+           | movimientos movimiento { 
+                char *temp = malloc(strlen($1) + strlen($2) + 1); // Asegúrate de tener suficiente espacio
+                if (temp) {
+                    strcpy(temp, $1); // Copia la primera cadena
+                    strcat(temp, $2); // Concatena la segunda cadena
+                    free($1); // Libera la memoria de la primera cadena
+                    $$ = temp; // Asigna la nueva cadena concatenada
+                } else {
+                    yyerror("Error de memoria");
+                    YYERROR;
+                }
+            }
            ;
 
-
 movimiento: MOVIMIENTO accion { $$ = $2; }
-
           ;
 
-
-accion: CORTE_DEBIL direccion { $$ = strdup("Corte Débil "); $$ = strcat($$, $2); free($2); }
-
-      | CORTE_MEDIO direccion { $$ = strdup("Corte Medio "); $$ = strcat($$, $2); free($2); }
-
-      | CORTE_FUERTE direccion { $$ = strdup("Corte Fuerte "); $$ = strcat($$, $2); free($2); }
-
-      | PATADA_DEBIL direccion { $$ = strdup("Patada Débil "); $$ = strcat($$, $2); free($2); }
-
-      | PATADA_MEDIA direccion { $$ = strdup("Patada Media "); $$ = strcat($$, $2); free($2); }
-
-      | PATADA_FUERTE direccion { $$ = strdup("Patada Fuerte "); $$ = strcat($$, $2); free($2); }
-
-      | MOV_ESPECIAL POW_MAXIMO { $$ = strdup("Especial con Poder Máximo"); }
-
+accion: CORTE_DEBIL direccion { 
+            char *temp = malloc(strlen("Corte Débil ") + strlen($2) + 1);
+            if (temp) {
+                strcpy(temp, "Corte Débil ");
+                strcat(temp, $2);
+                $$ = temp; // Asigna la cadena concatenada a $$
+            } else {
+                yyerror("Error de memoria");
+                YYERROR;
+            }
+        }
+      | CORTE_MEDIO direccion { 
+            char *temp = malloc(strlen("Corte Medio ") + strlen($2) + 1);
+            if (temp) {
+                strcpy(temp, "Corte Medio ");
+                strcat(temp, $2);
+                $$ = temp; // Asigna la cadena concatenada a $$
+            } else {
+                yyerror("Error de memoria");
+                YYERROR;
+            }
+        }
+      | CORTE_FUERTE direccion { 
+            char *temp = malloc(strlen("Corte Fuerte ") + strlen($2) + 1);
+            if (temp) {
+                strcpy(temp, "Corte Fuerte ");
+                strcat(temp, $2);
+                $$ = temp; // Asigna la cadena concatenada a $$
+            } else {
+                yyerror("Error de memoria");
+                YYERROR;
+            }
+        }
+      | PATADA_DEBIL direccion { 
+            char *temp = malloc(strlen("Patada Débil ") + strlen($2) + 1);
+            if (temp) {
+                strcpy(temp, "Patada Débil ");
+                strcat(temp, $2);
+                $$ = temp; // Asigna la cadena concatenada a $$
+            } else {
+                yyerror("Error de memoria");
+                YYERROR;
+            }
+        }
+      | PATADA_MEDIA direccion { 
+            char *temp = malloc(strlen("Patada Media ") + strlen($2) + 1);
+            if (temp) {
+                strcpy(temp, "Patada Media ");
+                strcat(temp, $2);
+                $$ = temp; // Asigna la cadena concatenada a $$
+            } else {
+                yyerror("Error de memoria");
+                YYERROR;
+            }
+        }
+      | PATADA_FUERTE direccion { 
+            char *temp = malloc(strlen("Patada Fuerte ") + strlen($2) + 1);
+            if (temp) {
+                strcpy(temp, "Patada Fuerte ");
+                strcat(temp, $2);
+                $$ = temp; // Asigna la cadena concatenada a $$
+            } else {
+                yyerror("Error de memoria");
+                YYERROR;
+            }
+        }
+      | SALTO direccion { 
+            char *temp = malloc(strlen("Salto ") + strlen($2) + 1);
+            if (temp) {
+                strcpy(temp, "Salto ");
+                strcat(temp, $2);
+                $$ = temp; // Asigna la cadena concatenada a $$
+            } else {
+                yyerror("Error de memoria");
+                YYERROR;
+            }
+        }
+      | MOV_ESPECIAL POW_MAXIMO direccion{ 
+            char *temp = malloc(strlen("Especial con Poder Máximo") + 1);
+            if (temp) {
+                strcpy(temp, "Especial con Poder Máximo");
+                $$ = temp; // Asigna la cadena al resultado
+            } else {
+                yyerror("Error de memoria");
+                YYERROR;
+            }
+        }
       ;
 
-
+      
 direccion: DERECHA { $$ = strdup("a la derecha"); }
-
          | IZQUIERDA { $$ = strdup("a la izquierda"); }
-
          ;
 %%
 
