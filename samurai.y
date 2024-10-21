@@ -2,48 +2,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-void yyerror(const char *s);
+int vida_1 = 100; // Barra de vida del jugador 1
+int vida_2 = 100; // Barra de vida del jugador 2
+char personaje_1[50]; // Nombre del personaje 1
+char personaje_2[50]; // Nombre del personaje 2
+
+void yyerror(const char *s) {
+    fprintf(stderr, "Error: %s\n", s);
+}
+
 int yylex();
 extern FILE *yyin;
 
+// Definición de tokens
 #define YYSTYPE char*
 
-// Función auxiliar para concatenar cadenas de forma segura
-char* concat(const char* str1, const char* str2) {
-    size_t len1 = strlen(str1);
-    size_t len2 = strlen(str2);
-    char* result = (char*) malloc(len1 + len2 + 1);
-    if (!result) {
-        fprintf(stderr, "Error de memoria\n");
-        exit(1);
-    }
-    strcpy(result, str1);
-    strcat(result, str2);
-    return result;
-}
-
-// Barras de vida para los personajes
-int vida_1 = 100; // Barra de vida del jugador 1
-int vida_2 = 100; // Barra de vida del jugador 2
-
-void aplicar_dano(const char *accion, int *vida) {
-    if (strcmp(accion, "Corte Débil") == 0) {
-        *vida -= 10;
-    } else if (strcmp(accion, "Corte Medio") == 0) {
-        *vida -= 15;
-    } else if (strcmp(accion, "Corte Fuerte") == 0) {
-        *vida -= 20;
-    } else if (strcmp(accion, "Patada Débil") == 0) {
-        *vida -= 8;
-    } else if (strcmp(accion, "Patada Media") == 0) {
-        *vida -= 12;
-    } else if (strcmp(accion, "Patada Fuerte") == 0) {
-        *vida -= 18;
-    } else if (strcmp(accion, "Especial con Poder Máximo") == 0) {
-        *vida -= 30;
-    }
-}
+// Declaraciones de funciones
+void aplicar_dano(const char *accion, int *vida);
+int ataque_exitoso(int distancia);
+char* concat(const char* str1, const char* str2);
 %}
 
 // Definir tokens
@@ -63,14 +42,13 @@ void aplicar_dano(const char *accion, int *vida) {
 
 %%
 
-
+// Reglas de gramática
 combate: jugadores NEWLINE movimientos FIN_MOVIMIENTOS {
             printf("Movimientos reconocidos: %s\n", $3);
             printf("Combate válido\n");
-            // Muestra la vida final de ambos personajes
-            printf("Vida de %s: %d\n", $1, vida_1);
-            printf("Vida de %s: %d\n", $2, vida_2);
-
+            printf("Vida de %s: %d\n", personaje_1, vida_1);
+            printf("Vida de %s: %d\n", personaje_2, vida_2);
+            free($3); // Liberar memoria de movimientos
         }
        ;
 
@@ -80,23 +58,11 @@ jugadores: personaje personaje {
                     YYERROR;
                 } else {
                     printf("Personajes seleccionados: %s, %s\n", $1, $2);
-                    // Asignar vida según el personaje
-                    if (strcmp($1, "Haohmaru") == 0) {
-                        vida_1 = 100;
-                    } else if (strcmp($1, "Nakoruru") == 0) {
-                        vida_1 = 100;
-                    } 
-                    // Agregar más personajes aquí
-                    if (strcmp($2, "Haohmaru") == 0) {
-                        vida_2 = 100;
-                    } else if (strcmp($2, "Nakoruru") == 0) {
-                        vida_2 = 100;
-                    } 
-                    // Agregar más personajes aquí
+                    strcpy(personaje_1, $1);
+                    strcpy(personaje_2, $2);
                 }
-                // Asegúrate de asignar correctamente los nombres de los personajes
-                $$ = concat($1, $2); // Asigna el nombre de ambos personajes
             }
+         ;
 
 personaje: HAOHMARU { $$ = "Haohmaru"; }
          | NAKORURU { $$ = "Nakoruru"; }
@@ -117,130 +83,117 @@ personaje: HAOHMARU { $$ = "Haohmaru"; }
          | MIZUKI { $$ = "Mizuki"; }
          ;
 
-movimientos: movimiento { 
-                $$ = strdup($1); // Asigna memoria para la primera cadena
-            }
-           | movimientos movimiento { 
-                char *temp = malloc(strlen($1) + strlen($2) + 1); // Asegúrate de tener suficiente espacio
-                if (temp) {
-                    strcpy(temp, $1); // Copia la primera cadena
-                    strcat(temp, $2); // Concatena la segunda cadena
-                    free($1); // Libera la memoria de la primera cadena
-                    $$ = temp; // Asigna la nueva cadena concatenada
-                } else {
-                    yyerror("Error de memoria");
-                    YYERROR;
-                }
+movimientos: movimiento { $$ = strdup($1); }
+           | movimientos movimiento {
+                char* temp = concat($1, $2);
+                free($1);
+                $$ = temp;
             }
            ;
 
-movimiento: MOVIMIENTO accion { 
-                // Aplicar daño al jugador 1
-                aplicar_dano($2, &vida_1); 
-                $$ = $2; 
+movimiento: MOVIMIENTO accion {
+                aplicar_dano($2, &vida_1); // Aplicar daño al jugador 1
+                aplicar_dano($2, &vida_2); // Aplicar daño al jugador 2
+                $$ = strdup($2);
             }
           ;
 
-accion: CORTE_DEBIL direccion { 
-            char *temp = malloc(strlen("Corte Débil ") + strlen($2) + 1);
-            if (temp) {
-                strcpy(temp, "Corte Débil ");
-                strcat(temp, $2);
-                $$ = temp; // Asigna la cadena concatenada a $$
-            } else {
-                yyerror("Error de memoria");
-                YYERROR;
-            }
-        }
-      | CORTE_MEDIO direccion { 
-            char *temp = malloc(strlen("Corte Medio ") + strlen($2) + 1);
-            if (temp) {
-                strcpy(temp, "Corte Medio ");
-                strcat(temp, $2);
-                $$ = temp; // Asigna la cadena concatenada a $$
-            } else {
-                yyerror("Error de memoria");
-                YYERROR;
-            }
-        }
-      | CORTE_FUERTE direccion { 
-            char *temp = malloc(strlen("Corte Fuerte ") + strlen($2) + 1);
-            if (temp) {
-                strcpy(temp, "Corte Fuerte ");
-                strcat(temp, $2);
-                $$ = temp; // Asigna la cadena concatenada a $$
-            } else {
-                yyerror("Error de memoria");
-                YYERROR;
-            }
-        }
-      | PATADA_DEBIL direccion { 
-            char *temp = malloc(strlen("Patada Débil ") + strlen($2) + 1);
-            if (temp) {
-                strcpy(temp, "Patada Débil ");
-                strcat(temp, $2);
-                $$ = temp; // Asigna la cadena concatenada a $$
-            } else {
-                yyerror("Error de memoria");
-                YYERROR;
-            }
-        }
-      | PATADA_MEDIA direccion { 
-            char *temp = malloc(strlen("Patada Media ") + strlen($2) + 1);
-            if (temp) {
-                strcpy(temp, "Patada Media ");
-                strcat(temp, $2);
-                $$ = temp; // Asigna la cadena concatenada a $$
-            } else {
-                yyerror("Error de memoria");
-                YYERROR;
-            }
-        }
-      | PATADA_FUERTE direccion { 
-            char *temp = malloc(strlen("Patada Fuerte ") + strlen($2) + 1);
-            if (temp) {
-                strcpy(temp, "Patada Fuerte ");
-                strcat(temp, $2);
-                $$ = temp; // Asigna la cadena concatenada a $$
-            } else {
-                yyerror("Error de memoria");
-                YYERROR;
-            }
-        }
-      | SALTO direccion { 
-            char *temp = malloc(strlen("Salto ") + strlen($2) + 1);
-            if (temp) {
-                strcpy(temp, "Salto ");
-                strcat(temp, $2);
-                $$ = temp; // Asigna la cadena concatenada a $$
-            } else {
-                yyerror("Error de memoria");
-                YYERROR;
-            }
-        }
-      | MOV_ESPECIAL POW_MAXIMO direccion{ 
-            char *temp = malloc(strlen("Especial con Poder Máximo") + 1);
-            if (temp) {
-                strcpy(temp, "Especial con Poder Máximo");
-                $$ = temp; // Asigna la cadena a $$
-            } else {
-                yyerror("Error de memoria");
-                YYERROR;
-            }
-        }
+accion: CORTE_DEBIL direccion { $$ = concat("Corte Débil ", $2); free($2); }
+      | CORTE_MEDIO direccion { $$ = concat("Corte Medio ", $2); free($2); }
+      | CORTE_FUERTE direccion { $$ = concat("Corte Fuerte ", $2); free($2); }
+      | PATADA_DEBIL direccion { $$ = concat("Patada Débil ", $2); free($2); }
+      | PATADA_MEDIA direccion { $$ = concat("Patada Media ", $2); free($2); }
+      | PATADA_FUERTE direccion { $$ = concat("Patada Fuerte ", $2); free($2); }
+      | SALTO direccion { $$ = concat("Salto ", $2); free($2); }
+      | MOV_ESPECIAL POW_MAXIMO direccion { $$ = strdup("Especial con Poder Máximo"); }
       ;
 
-direccion: DERECHA { $$ = "derecha"; }
-         | IZQUIERDA { $$ = "izquierda"; }
-         | AGACHARSE { $$ = "agachado"; }
-         | CORRER { $$ = "corriendo"; }
-         | RETIRADA { $$ = "retirándose"; }
-         | ESQUIVAR { $$ = "esquivando"; }
-         | RODAR { $$ = "rodando"; }
+direccion: DERECHA { $$ = strdup("derecha"); }
+         | IZQUIERDA { $$ = strdup("izquierda"); }
          ;
 
 %%
+
+// Código C adicional
+char* concat(const char* str1, const char* str2) {
+    size_t len1 = strlen(str1);
+    size_t len2 = strlen(str2);
+    char* result = (char*) malloc(len1 + len2 + 1);
+    if (!result) {
+        fprintf(stderr, "Error de memoria\n");
+        exit(1);
+    }
+    strcpy(result, str1);
+    strcat(result, str2);
+    return result;
+}
+
+void aplicar_dano(const char *accion, int *vida) {
+
+    int distancia = rand() % 2; // Generar distancia aleatoria (0 o 1)
+
+
+    printf("Distancia para el ataque '%s': %d\n", accion, distancia); // Imprimir distancia
+
+
+    int danio = 0;
+
+
+    // Asignar daño basado en la acción
+
+    if (strcmp(accion, "Corte Débil") == 0) {
+
+        danio = 10;
+
+    } else if (strcmp(accion, "Corte Medio") == 0) {
+
+        danio = 15;
+
+    } else if (strcmp(accion, "Corte Fuerte") == 0) {
+
+        danio = 20;
+
+    } else if (strcmp(accion, "Patada Débil") == 0) {
+
+        danio = 8;
+
+    } else if (strcmp(accion, "Patada Media") == 0) {
+
+        danio = 12;
+
+    } else if (strcmp(accion, "Patada Fuerte") == 0) {
+
+        danio = 18;
+
+    } else if (strcmp(accion, "Especial con Poder Máximo") == 0) {
+
+        danio = 30;
+
+    }
+
+
+    // Solo aplicar daño si el ataque es exitoso
+
+    if (ataque_exitoso(distancia)) {
+
+        *vida -= danio; // Aplicar daño
+
+        printf("Ataque exitoso: %s inflige %d puntos de daño.\n", accion, danio);
+
+    } else {
+
+        printf("Ataque fallido: %s no golpea.\n", accion);
+
+    }
+
+}
+
+int ataque_exitoso(int distancia) {
+    return (distancia == 0); // Golpea si la distancia es 0
+}
+
 int main(int argc, char **argv) {
+    srand(time(NULL)); // Sembrar el generador de números aleatorios
     if (argc > 1) {
         yyin = fopen(argv[1], "r");
         if (!yyin) {
@@ -249,8 +202,4 @@ int main(int argc, char **argv) {
         }
     }
     return yyparse();
-}
-
-void yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
 }
