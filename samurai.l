@@ -1,5 +1,6 @@
 %{
 #include "samurai.tab.h"
+#include <stdio.h>
 %}
 
 %%
@@ -27,12 +28,12 @@
 "PATADA_MEDIA"        { printf("Token PATADA_MEDIA\n"); return PATADA_MEDIA; }
 "PATADA_FUERTE"       { printf("Token PATADA_FUERTE\n"); return PATADA_FUERTE; }
 "SALTO"               { printf("Token SALTO\n"); return SALTO; }
-"derecha\n"           { printf("Token DERECHA\n"); return DERECHA; }
-"izquierda\n"         { printf("Token IZQUIERDA\n"); return IZQUIERDA; }
+"derecha"             { printf("Token DERECHA\n"); return DERECHA; }
+"izquierda"           { printf("Token IZQUIERDA\n"); return IZQUIERDA; }
 "AGACHARSE"           { printf("Token AGACHARSE\n"); return AGACHARSE; }
 "CORRER"              { printf("Token CORRER\n"); return CORRER; }
 "RETIRADA"            { printf("Token RETIRADA\n"); return RETIRADA; }
-"ESQUIVAR"           { printf("Token ESQUIVAR\n"); return ESQUIVAR; }
+"ESQUIVAR"            { printf("Token ESQUIVAR\n"); return ESQUIVAR; }
 "RODAR"               { printf("Token RODAR\n"); return RODAR; }
 "BURLA"               { printf("Token BURLA\n"); return BURLA; }
 "CANCELAR_BURLA"      { printf("Token CANCELAR_BURLA\n"); return CANCELAR_BURLA; }
@@ -40,10 +41,11 @@
 "POW_MAXIMO"          { printf("Token POW_MAXIMO\n"); return POW_MAXIMO; }
 "MOVIMIENTO"          { printf("Token MOVIMIENTO\n"); return MOVIMIENTO; }
 "FIN_MOVIMIENTOS"     { printf("Token FIN_MOVIMIENTOS\n"); return FIN_MOVIMIENTOS; }
-
-"\n"                  { printf("Token NEWLINE\n"); return NEWLINE; }
+\n                    { printf("Token NEWLINE\n"); return NEWLINE; }
 [ \t]+                { /* Ignorar espacios */ }
+.                     { /* Ignorar cualquier otro carácter */ }
 %%
+
 int yywrap() {
     return 1;
 }

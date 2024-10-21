@@ -72,12 +72,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include "samurai.h"
 void yyerror(const char *s);
 int yylex();
 extern FILE *yyin;
+Jugador *jugador1 = NULL;
+Jugador *jugador2 = NULL;
 #define YYSTYPE char*
 
-#line 81 "samurai.tab.c"
+#line 85 "samurai.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -149,7 +153,7 @@ enum yysymbol_kind_t
   YYSYMBOL_YYACCEPT = 41,                  /* $accept  */
   YYSYMBOL_combate = 42,                   /* combate  */
   YYSYMBOL_jugadores = 43,                 /* jugadores  */
-  YYSYMBOL_movimientos = 44,               /* movimientos  */
+  YYSYMBOL_lista_movimientos = 44,         /* lista_movimientos  */
   YYSYMBOL_movimiento = 45,                /* movimiento  */
   YYSYMBOL_accion = 46,                    /* accion  */
   YYSYMBOL_direccion = 47                  /* direccion  */
@@ -487,7 +491,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  7
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  17
+#define YYNRULES  16
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  31
 
@@ -542,8 +546,8 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    31,    31,    36,    38,    43,    45,    47,    52,    57,
-      59,    61,    63,    65,    67,    69,    74,    76
+       0,    27,    27,    36,    41,    48,    49,    52,    55,    58,
+      61,    64,    67,    70,    73,    78,    81
 };
 #endif
 
@@ -567,7 +571,7 @@ static const char *const yytname[] =
   "DERECHA", "IZQUIERDA", "AGACHARSE", "CORRER", "RETIRADA", "ESQUIVAR",
   "RODAR", "BURLA", "CANCELAR_BURLA", "MOV_ESPECIAL", "POW_MAXIMO",
   "NEWLINE", "MOVIMIENTO", "FIN_MOVIMIENTOS", "$accept", "combate",
-  "jugadores", "movimientos", "movimiento", "accion", "direccion", YY_NULLPTR
+  "jugadores", "lista_movimientos", "movimiento", "accion", "direccion", YY_NULLPTR
 };
 
 static const char *
@@ -591,9 +595,9 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       8,    11,    16,    20,   -17,   -27,   -27,   -27,   -16,   -20,
-     -26,   -27,   -10,   -10,   -10,   -10,   -10,   -10,   -15,   -27,
-     -27,   -27,   -27,   -27,   -27,   -27,   -27,   -27,   -27,   -27,
+       8,    11,    16,    20,   -17,   -27,   -27,   -27,   -27,   -26,
+     -20,   -27,   -27,   -10,   -10,   -10,   -10,   -10,   -10,   -15,
+     -14,   -27,   -27,   -27,   -27,   -27,   -27,   -27,   -27,   -27,
      -27
 };
 
@@ -602,22 +606,22 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     0,     0,     3,     4,     1,     7,     0,
-       0,     5,     0,     0,     0,     0,     0,     0,     0,     8,
-       2,     6,    16,    17,     9,    10,    11,    12,    13,    14,
-      15
+       0,     0,     0,     0,     0,     3,     4,     1,     5,     0,
+       0,     2,     6,     0,     0,     0,     0,     0,     0,     0,
+       0,    15,    16,     8,     9,    10,    11,    12,    13,    14,
+       7
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -27,   -27,   -27,   -27,    14,   -27,    -7
+     -27,   -27,   -27,   -27,   -27,   -27,    -8
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     3,     4,    10,    11,    19,    24
+       0,     3,     4,     9,    12,    20,    23
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -625,40 +629,40 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      12,    13,    14,    15,    16,    17,    25,    26,    27,    28,
-      29,     1,     2,     9,    20,     5,    18,    22,    23,     6,
-       7,     8,    30,     9,    21
+      13,    14,    15,    16,    17,    18,    24,    25,    26,    27,
+      28,     1,     2,    10,    11,     5,    19,    21,    22,     6,
+       7,     8,    29,     0,    30
 };
 
 static const yytype_int8 yycheck[] =
 {
-      20,    21,    22,    23,    24,    25,    13,    14,    15,    16,
-      17,     3,     4,    39,    40,     4,    36,    27,    28,     3,
-       0,    38,    37,    39,    10
+      20,    21,    22,    23,    24,    25,    14,    15,    16,    17,
+      18,     3,     4,    39,    40,     4,    36,    27,    28,     3,
+       0,    38,    37,    -1,    38
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,     4,    42,    43,     4,     3,     0,    38,    39,
-      44,    45,    20,    21,    22,    23,    24,    25,    36,    46,
-      40,    45,    27,    28,    47,    47,    47,    47,    47,    47,
-      37
+       0,     3,     4,    42,    43,     4,     3,     0,    38,    44,
+      39,    40,    45,    20,    21,    22,    23,    24,    25,    36,
+      46,    27,    28,    47,    47,    47,    47,    47,    47,    37,
+      38
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    41,    42,    43,    43,    44,    44,    44,    45,    46,
-      46,    46,    46,    46,    46,    46,    47,    47
+       0,    41,    42,    43,    43,    44,    44,    45,    46,    46,
+      46,    46,    46,    46,    46,    47,    47
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     4,     2,     2,     1,     2,     0,     2,     2,
-       2,     2,     2,     2,     2,     2,     1,     1
+       0,     2,     4,     2,     2,     0,     2,     3,     2,     2,
+       2,     2,     2,     2,     2,     1,     1
 };
 
 
@@ -1121,104 +1125,112 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 2: /* combate: jugadores NEWLINE movimientos FIN_MOVIMIENTOS  */
-#line 31 "samurai.y"
-                                                       { printf("Movimientos reconocidos: %s\n", yyvsp[-1]); printf("Combate válido\n"); }
-#line 1128 "samurai.tab.c"
+  case 2: /* combate: jugadores NEWLINE lista_movimientos FIN_MOVIMIENTOS  */
+#line 27 "samurai.y"
+                                                             {
+    printf("Estado final del combate:\n");
+    printf("%s - Vida: %d, Poder: %d, Posición: %d\n", 
+           jugador1->nombre, jugador1->vida, jugador1->poder, jugador1->posicion);
+    printf("%s - Vida: %d, Poder: %d, Posición: %d\n", 
+           jugador2->nombre, jugador2->vida, jugador2->poder, jugador2->posicion);
+}
+#line 1138 "samurai.tab.c"
     break;
 
   case 3: /* jugadores: HAOHMARU NAKORURU  */
 #line 36 "samurai.y"
-                             { printf("Personajes seleccionados: %s, %s\n", "Haohmaru", "Nakoruru"); }
-#line 1134 "samurai.tab.c"
+                             {
+    jugador1 = crear_jugador("Haohmaru", 0);
+    jugador2 = crear_jugador("Nakoruru", MAX_DISTANCIA);
+    printf("Combate iniciado: %s vs %s\n", jugador1->nombre, jugador2->nombre);
+}
+#line 1148 "samurai.tab.c"
     break;
 
   case 4: /* jugadores: NAKORURU HAOHMARU  */
-#line 38 "samurai.y"
-                             { printf("Personajes seleccionados: %s, %s\n", "Nakoruru", "Haohmaru"); }
-#line 1140 "samurai.tab.c"
-    break;
-
-  case 5: /* movimientos: movimiento  */
-#line 43 "samurai.y"
-                        { yyval = yyvsp[0]; }
-#line 1146 "samurai.tab.c"
-    break;
-
-  case 6: /* movimientos: movimientos movimiento  */
-#line 45 "samurai.y"
-                                    { yyval = strcat(yyvsp[-1], yyvsp[0]); free(yyvsp[0]); }
-#line 1152 "samurai.tab.c"
-    break;
-
-  case 7: /* movimientos: %empty  */
-#line 47 "samurai.y"
-                         { yyval = strdup(""); }
+#line 41 "samurai.y"
+                    {
+    jugador1 = crear_jugador("Nakoruru", 0);
+    jugador2 = crear_jugador("Haohmaru", MAX_DISTANCIA);
+    printf("Combate iniciado: %s vs %s\n", jugador1->nombre, jugador2->nombre);
+}
 #line 1158 "samurai.tab.c"
     break;
 
-  case 8: /* movimiento: MOVIMIENTO accion  */
-#line 52 "samurai.y"
-                              { yyval = yyvsp[0]; }
-#line 1164 "samurai.tab.c"
+  case 8: /* accion: CORTE_DEBIL direccion  */
+#line 55 "samurai.y"
+                              {
+    realizar_ataque(jugador1, jugador2, 1);
+}
+#line 1166 "samurai.tab.c"
     break;
 
-  case 9: /* accion: CORTE_DEBIL direccion  */
-#line 57 "samurai.y"
-                              { yyval = strdup("Corte Débil "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
-#line 1170 "samurai.tab.c"
+  case 9: /* accion: CORTE_MEDIO direccion  */
+#line 58 "samurai.y"
+                        {
+    realizar_ataque(jugador1, jugador2, 2);
+}
+#line 1174 "samurai.tab.c"
     break;
 
-  case 10: /* accion: CORTE_MEDIO direccion  */
-#line 59 "samurai.y"
-                              { yyval = strdup("Corte Medio "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
-#line 1176 "samurai.tab.c"
-    break;
-
-  case 11: /* accion: CORTE_FUERTE direccion  */
+  case 10: /* accion: CORTE_FUERTE direccion  */
 #line 61 "samurai.y"
-                               { yyval = strdup("Corte Fuerte "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
+                         {
+    realizar_ataque(jugador1, jugador2, 3);
+}
 #line 1182 "samurai.tab.c"
     break;
 
-  case 12: /* accion: PATADA_DEBIL direccion  */
-#line 63 "samurai.y"
-                               { yyval = strdup("Patada Débil "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
-#line 1188 "samurai.tab.c"
+  case 11: /* accion: PATADA_DEBIL direccion  */
+#line 64 "samurai.y"
+                         {
+    realizar_ataque(jugador1, jugador2, 4);
+}
+#line 1190 "samurai.tab.c"
     break;
 
-  case 13: /* accion: PATADA_MEDIA direccion  */
-#line 65 "samurai.y"
-                               { yyval = strdup("Patada Media "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
-#line 1194 "samurai.tab.c"
-    break;
-
-  case 14: /* accion: PATADA_FUERTE direccion  */
+  case 12: /* accion: PATADA_MEDIA direccion  */
 #line 67 "samurai.y"
-                                { yyval = strdup("Patada Fuerte "); yyval = strcat(yyval, yyvsp[0]); free(yyvsp[0]); }
-#line 1200 "samurai.tab.c"
+                         {
+    realizar_ataque(jugador1, jugador2, 5);
+}
+#line 1198 "samurai.tab.c"
     break;
 
-  case 15: /* accion: MOV_ESPECIAL POW_MAXIMO  */
-#line 69 "samurai.y"
-                                { yyval = strdup("Especial con Poder Máximo"); }
+  case 13: /* accion: PATADA_FUERTE direccion  */
+#line 70 "samurai.y"
+                          {
+    realizar_ataque(jugador1, jugador2, 6);
+}
 #line 1206 "samurai.tab.c"
     break;
 
-  case 16: /* direccion: DERECHA  */
-#line 74 "samurai.y"
-                   { yyval = strdup("a la derecha"); }
-#line 1212 "samurai.tab.c"
+  case 14: /* accion: MOV_ESPECIAL POW_MAXIMO  */
+#line 73 "samurai.y"
+                          {
+    realizar_ataque(jugador1, jugador2, 7);
+}
+#line 1214 "samurai.tab.c"
     break;
 
-  case 17: /* direccion: IZQUIERDA  */
-#line 76 "samurai.y"
-                     { yyval = strdup("a la izquierda"); }
-#line 1218 "samurai.tab.c"
-    break;
-
-
+  case 15: /* direccion: DERECHA  */
+#line 78 "samurai.y"
+                   {
+    mover_jugador(jugador1, 1);
+}
 #line 1222 "samurai.tab.c"
+    break;
+
+  case 16: /* direccion: IZQUIERDA  */
+#line 81 "samurai.y"
+            {
+    mover_jugador(jugador1, -1);
+}
+#line 1230 "samurai.tab.c"
+    break;
+
+
+#line 1234 "samurai.tab.c"
 
       default: break;
     }
@@ -1411,7 +1423,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 79 "samurai.y"
+#line 85 "samurai.y"
 
 
 void yyerror(const char *s) {
@@ -1419,6 +1431,8 @@ void yyerror(const char *s) {
 }
 
 int main(int argc, char **argv) {
+    srand(time(NULL));
+    
     if (argc > 1) {
         FILE *archivo = fopen(argv[1], "r");
         if (!archivo) {
@@ -1427,6 +1441,12 @@ int main(int argc, char **argv) {
         }
         yyin = archivo;
     }
+    
     yyparse();
+    
+    if (jugador1) free(jugador1);
+    if (jugador2) free(jugador2);
+    
     return 0;
 }
+
