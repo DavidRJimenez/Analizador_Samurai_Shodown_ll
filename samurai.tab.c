@@ -78,6 +78,7 @@ int vida_1 = 100; // Barra de vida del jugador 1
 int vida_2 = 100; // Barra de vida del jugador 2
 char personaje_1[50]; // Nombre del personaje 1
 char personaje_2[50]; // Nombre del personaje 2
+int turno = 1; // Variable para controlar el turno (1 para jugador 1, 2 para jugador 2)
 
 void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
@@ -90,11 +91,11 @@ extern FILE *yyin;
 #define YYSTYPE char*
 
 // Declaraciones de funciones
-void aplicar_dano(const char *accion, int *vida);
+void aplicar_dano(const char *accion, int *vida, int distancia);
 int ataque_exitoso(int distancia);
 char* concat(const char* str1, const char* str2);
 
-#line 98 "samurai.tab.c"
+#line 99 "samurai.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -634,10 +635,10 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    46,    46,    55,    67,    68,    69,    70,    71,    72,
-      73,    74,    75,    76,    77,    78,    79,    80,    81,    82,
-      83,    86,    87,    94,   101,   102,   103,   104,   105,   106,
-     107,   108,   111,   112
+       0,    46,    46,    64,    76,    77,    78,    79,    80,    81,
+      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
+      92,    95,    96,   103,   115,   116,   117,   118,   119,   120,
+     121,   122,   125,   126
 };
 #endif
 
@@ -1236,13 +1237,22 @@ yyreduce:
             printf("Combate válido\n");
             printf("Vida de %s: %d\n", personaje_1, vida_1);
             printf("Vida de %s: %d\n", personaje_2, vida_2);
+            if (vida_1 <= 0 && vida_2 <= 0) {
+                printf("Empate: ambos jugadores han llegado a 0 de vida.\n");
+            } else if (vida_1 <= 0) {
+                printf("El ganador es %s.\n", personaje_2);
+            } else if (vida_2 <= 0) {
+                printf("El ganador es %s.\n", personaje_1);
+            } else {
+                printf("Ningún jugador ha llegado a 0, no hay ganador.\n");
+            }
             free(yyvsp[-1]); // Liberar memoria de movimientos
         }
-#line 1242 "samurai.tab.c"
+#line 1252 "samurai.tab.c"
     break;
 
   case 3: /* jugadores: personaje personaje  */
-#line 55 "samurai.y"
+#line 64 "samurai.y"
                                {
                 if (strcmp(yyvsp[-1], yyvsp[0]) == 0) {
                     yyerror("Error: Los personajes no pueden ser los mismos.");
@@ -1253,199 +1263,205 @@ yyreduce:
                     strcpy(personaje_2, yyvsp[0]);
                 }
             }
-#line 1257 "samurai.tab.c"
+#line 1267 "samurai.tab.c"
     break;
 
   case 4: /* personaje: HAOHMARU  */
-#line 67 "samurai.y"
+#line 76 "samurai.y"
                     { yyval = "Haohmaru"; }
-#line 1263 "samurai.tab.c"
+#line 1273 "samurai.tab.c"
     break;
 
   case 5: /* personaje: NAKORURU  */
-#line 68 "samurai.y"
+#line 77 "samurai.y"
                     { yyval = "Nakoruru"; }
-#line 1269 "samurai.tab.c"
+#line 1279 "samurai.tab.c"
     break;
 
   case 6: /* personaje: UKYO  */
-#line 69 "samurai.y"
+#line 78 "samurai.y"
                 { yyval = "Ukyo"; }
-#line 1275 "samurai.tab.c"
+#line 1285 "samurai.tab.c"
     break;
 
   case 7: /* personaje: CHARLOTTE  */
-#line 70 "samurai.y"
+#line 79 "samurai.y"
                      { yyval = "Charlotte"; }
-#line 1281 "samurai.tab.c"
+#line 1291 "samurai.tab.c"
     break;
 
   case 8: /* personaje: GALFORD  */
-#line 71 "samurai.y"
+#line 80 "samurai.y"
                    { yyval = "Galford"; }
-#line 1287 "samurai.tab.c"
+#line 1297 "samurai.tab.c"
     break;
 
   case 9: /* personaje: JUBEI  */
-#line 72 "samurai.y"
+#line 81 "samurai.y"
                  { yyval = "Jubei"; }
-#line 1293 "samurai.tab.c"
+#line 1303 "samurai.tab.c"
     break;
 
   case 10: /* personaje: TERREMOTO  */
-#line 73 "samurai.y"
+#line 82 "samurai.y"
                      { yyval = "Terremoto"; }
-#line 1299 "samurai.tab.c"
+#line 1309 "samurai.tab.c"
     break;
 
   case 11: /* personaje: HANZO  */
-#line 74 "samurai.y"
+#line 83 "samurai.y"
                  { yyval = "Hanzo"; }
-#line 1305 "samurai.tab.c"
+#line 1315 "samurai.tab.c"
     break;
 
   case 12: /* personaje: KYOSHIRO  */
-#line 75 "samurai.y"
+#line 84 "samurai.y"
                     { yyval = "Kyoshiro"; }
-#line 1311 "samurai.tab.c"
+#line 1321 "samurai.tab.c"
     break;
 
   case 13: /* personaje: WAN_FU  */
-#line 76 "samurai.y"
+#line 85 "samurai.y"
                   { yyval = "Wan-Fu"; }
-#line 1317 "samurai.tab.c"
+#line 1327 "samurai.tab.c"
     break;
 
   case 14: /* personaje: GENAN  */
-#line 77 "samurai.y"
+#line 86 "samurai.y"
                  { yyval = "Genan"; }
-#line 1323 "samurai.tab.c"
+#line 1333 "samurai.tab.c"
     break;
 
   case 15: /* personaje: GENJURO  */
-#line 78 "samurai.y"
+#line 87 "samurai.y"
                    { yyval = "Genjuro"; }
-#line 1329 "samurai.tab.c"
+#line 1339 "samurai.tab.c"
     break;
 
   case 16: /* personaje: CHAMCHAM  */
-#line 79 "samurai.y"
+#line 88 "samurai.y"
                     { yyval = "Cham Cham"; }
-#line 1335 "samurai.tab.c"
+#line 1345 "samurai.tab.c"
     break;
 
   case 17: /* personaje: NEINHALT_SIEGER  */
-#line 80 "samurai.y"
+#line 89 "samurai.y"
                            { yyval = "Neinhalt Sieger"; }
-#line 1341 "samurai.tab.c"
+#line 1351 "samurai.tab.c"
     break;
 
   case 18: /* personaje: NICOTINE  */
-#line 81 "samurai.y"
+#line 90 "samurai.y"
                     { yyval = "Nicotine"; }
-#line 1347 "samurai.tab.c"
+#line 1357 "samurai.tab.c"
     break;
 
   case 19: /* personaje: KUROKO  */
-#line 82 "samurai.y"
+#line 91 "samurai.y"
                   { yyval = "Kuroko"; }
-#line 1353 "samurai.tab.c"
+#line 1363 "samurai.tab.c"
     break;
 
   case 20: /* personaje: MIZUKI  */
-#line 83 "samurai.y"
+#line 92 "samurai.y"
                   { yyval = "Mizuki"; }
-#line 1359 "samurai.tab.c"
+#line 1369 "samurai.tab.c"
     break;
 
   case 21: /* movimientos: movimiento  */
-#line 86 "samurai.y"
+#line 95 "samurai.y"
                         { yyval = strdup(yyvsp[0]); }
-#line 1365 "samurai.tab.c"
+#line 1375 "samurai.tab.c"
     break;
 
   case 22: /* movimientos: movimientos movimiento  */
-#line 87 "samurai.y"
+#line 96 "samurai.y"
                                     {
                 char* temp = concat(yyvsp[-1], yyvsp[0]);
                 free(yyvsp[-1]);
                 yyval = temp;
             }
-#line 1375 "samurai.tab.c"
-    break;
-
-  case 23: /* movimiento: MOVIMIENTO accion  */
-#line 94 "samurai.y"
-                              {
-                aplicar_dano(yyvsp[0], &vida_1); // Aplicar daño al jugador 1
-                aplicar_dano(yyvsp[0], &vida_2); // Aplicar daño al jugador 2
-                yyval = strdup(yyvsp[0]);
-            }
 #line 1385 "samurai.tab.c"
     break;
 
+  case 23: /* movimiento: MOVIMIENTO accion  */
+#line 103 "samurai.y"
+                              {
+    int distancia = rand() % 2; // Generar distancia aleatoria (0 o 1)
+    if (turno == 1) {
+        aplicar_dano(yyvsp[0], &vida_2, distancia); // Aplicar daño al jugador 2
+        turno = 2; // Cambiar el turno al jugador 2
+    } else {
+        aplicar_dano(yyvsp[0], &vida_1, distancia); // Aplicar daño al jugador 1
+        turno = 1; // Cambiar el turno al jugador 1
+    }
+    yyval = strdup(yyvsp[0]);
+}
+#line 1401 "samurai.tab.c"
+    break;
+
   case 24: /* accion: CORTE_DEBIL direccion  */
-#line 101 "samurai.y"
+#line 115 "samurai.y"
                               { yyval = concat("Corte Débil ", yyvsp[0]); free(yyvsp[0]); }
-#line 1391 "samurai.tab.c"
+#line 1407 "samurai.tab.c"
     break;
 
   case 25: /* accion: CORTE_MEDIO direccion  */
-#line 102 "samurai.y"
+#line 116 "samurai.y"
                               { yyval = concat("Corte Medio ", yyvsp[0]); free(yyvsp[0]); }
-#line 1397 "samurai.tab.c"
+#line 1413 "samurai.tab.c"
     break;
 
   case 26: /* accion: CORTE_FUERTE direccion  */
-#line 103 "samurai.y"
+#line 117 "samurai.y"
                                { yyval = concat("Corte Fuerte ", yyvsp[0]); free(yyvsp[0]); }
-#line 1403 "samurai.tab.c"
+#line 1419 "samurai.tab.c"
     break;
 
   case 27: /* accion: PATADA_DEBIL direccion  */
-#line 104 "samurai.y"
+#line 118 "samurai.y"
                                { yyval = concat("Patada Débil ", yyvsp[0]); free(yyvsp[0]); }
-#line 1409 "samurai.tab.c"
+#line 1425 "samurai.tab.c"
     break;
 
   case 28: /* accion: PATADA_MEDIA direccion  */
-#line 105 "samurai.y"
+#line 119 "samurai.y"
                                { yyval = concat("Patada Media ", yyvsp[0]); free(yyvsp[0]); }
-#line 1415 "samurai.tab.c"
+#line 1431 "samurai.tab.c"
     break;
 
   case 29: /* accion: PATADA_FUERTE direccion  */
-#line 106 "samurai.y"
+#line 120 "samurai.y"
                                 { yyval = concat("Patada Fuerte ", yyvsp[0]); free(yyvsp[0]); }
-#line 1421 "samurai.tab.c"
+#line 1437 "samurai.tab.c"
     break;
 
   case 30: /* accion: SALTO direccion  */
-#line 107 "samurai.y"
+#line 121 "samurai.y"
                         { yyval = concat("Salto ", yyvsp[0]); free(yyvsp[0]); }
-#line 1427 "samurai.tab.c"
+#line 1443 "samurai.tab.c"
     break;
 
   case 31: /* accion: MOV_ESPECIAL POW_MAXIMO direccion  */
-#line 108 "samurai.y"
+#line 122 "samurai.y"
                                           { yyval = strdup("Especial con Poder Máximo"); }
-#line 1433 "samurai.tab.c"
+#line 1449 "samurai.tab.c"
     break;
 
   case 32: /* direccion: DERECHA  */
-#line 111 "samurai.y"
+#line 125 "samurai.y"
                    { yyval = strdup("derecha"); }
-#line 1439 "samurai.tab.c"
+#line 1455 "samurai.tab.c"
     break;
 
   case 33: /* direccion: IZQUIERDA  */
-#line 112 "samurai.y"
+#line 126 "samurai.y"
                      { yyval = strdup("izquierda"); }
-#line 1445 "samurai.tab.c"
+#line 1461 "samurai.tab.c"
     break;
 
 
-#line 1449 "samurai.tab.c"
+#line 1465 "samurai.tab.c"
 
       default: break;
     }
@@ -1638,7 +1654,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 115 "samurai.y"
+#line 129 "samurai.y"
 
 
 // Código C adicional
@@ -1655,68 +1671,42 @@ char* concat(const char* str1, const char* str2) {
     return result;
 }
 
-void aplicar_dano(const char *accion, int *vida) {
-
-    int distancia = rand() % 2; // Generar distancia aleatoria (0 o 1)
-
-
+void aplicar_dano(const char *accion, int *vida, int distancia) {
     printf("Distancia para el ataque '%s': %d\n", accion, distancia); // Imprimir distancia
-
-
     int danio = 0;
 
-
     // Asignar daño basado en la acción
-
-    if (strcmp(accion, "Corte Débil") == 0) {
-
+    if (strcmp(accion, "Corte Débil derecha") == 0 || strcmp(accion, "Corte Débil izquierda") == 0) {
         danio = 10;
-
-    } else if (strcmp(accion, "Corte Medio") == 0) {
-
+    } else if (strcmp(accion, "Corte Medio derecha") == 0 || strcmp(accion, "Corte Medio izquierda") == 0) {
         danio = 15;
-
-    } else if (strcmp(accion, "Corte Fuerte") == 0) {
-
+    } else if (strcmp(accion, "Corte Fuerte derecha") == 0 || strcmp(accion, "Corte Fuerte izquierda") == 0) {
         danio = 20;
-
-    } else if (strcmp(accion, "Patada Débil") == 0) {
-
+    } else if (strcmp(accion, "Patada Débil derecha") == 0 || strcmp(accion, "Patada Débil izquierda") == 0) {
         danio = 8;
-
-    } else if (strcmp(accion, "Patada Media") == 0) {
-
+    } else if (strcmp(accion, "Patada Media derecha") == 0 || strcmp(accion, "Patada Media izquierda") == 0) {
         danio = 12;
-
-    } else if (strcmp(accion, "Patada Fuerte") == 0) {
-
+    } else if (strcmp(accion, "Patada Fuerte derecha") == 0 || strcmp(accion, "Patada Fuerte izquierda") == 0) {
         danio = 18;
-
     } else if (strcmp(accion, "Especial con Poder Máximo") == 0) {
-
         danio = 30;
-
     }
-
 
     // Solo aplicar daño si el ataque es exitoso
-
     if (ataque_exitoso(distancia)) {
-
         *vida -= danio; // Aplicar daño
-
+        if (*vida < 0) {
+            *vida = 0; // Evitar valores negativos en la vida
+        }
         printf("Ataque exitoso: %s inflige %d puntos de daño.\n", accion, danio);
-
     } else {
-
         printf("Ataque fallido: %s no golpea.\n", accion);
-
     }
-
 }
 
+
 int ataque_exitoso(int distancia) {
-    return (distancia == 0); // Golpea si la distancia es 0
+    return distancia == 1; // El ataque tiene éxito si la distancia es 1
 }
 
 int main(int argc, char **argv) {

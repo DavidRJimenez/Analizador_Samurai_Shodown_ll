@@ -8,6 +8,7 @@ int vida_1 = 100; // Barra de vida del jugador 1
 int vida_2 = 100; // Barra de vida del jugador 2
 char personaje_1[50]; // Nombre del personaje 1
 char personaje_2[50]; // Nombre del personaje 2
+int turno = 1; // Variable para controlar el turno (1 para jugador 1, 2 para jugador 2)
 
 void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
@@ -20,7 +21,7 @@ extern FILE *yyin;
 #define YYSTYPE char*
 
 // Declaraciones de funciones
-void aplicar_dano(const char *accion, int *vida);
+void aplicar_dano(const char *accion, int *vida, int distancia);
 int ataque_exitoso(int distancia);
 char* concat(const char* str1, const char* str2);
 %}
@@ -42,12 +43,20 @@ char* concat(const char* str1, const char* str2);
 
 %%
 
-// Reglas de gramática
 combate: jugadores NEWLINE movimientos FIN_MOVIMIENTOS {
             printf("Movimientos reconocidos: %s\n", $3);
             printf("Combate válido\n");
             printf("Vida de %s: %d\n", personaje_1, vida_1);
             printf("Vida de %s: %d\n", personaje_2, vida_2);
+            if (vida_1 <= 0 && vida_2 <= 0) {
+                printf("Empate: ambos jugadores han llegado a 0 de vida.\n");
+            } else if (vida_1 <= 0) {
+                printf("El ganador es %s.\n", personaje_2);
+            } else if (vida_2 <= 0) {
+                printf("El ganador es %s.\n", personaje_1);
+            } else {
+                printf("Ningún jugador ha llegado a 0, no hay ganador.\n");
+            }
             free($3); // Liberar memoria de movimientos
         }
        ;
@@ -92,11 +101,16 @@ movimientos: movimiento { $$ = strdup($1); }
            ;
 
 movimiento: MOVIMIENTO accion {
-                aplicar_dano($2, &vida_1); // Aplicar daño al jugador 1
-                aplicar_dano($2, &vida_2); // Aplicar daño al jugador 2
-                $$ = strdup($2);
-            }
-          ;
+    int distancia = rand() % 2; // Generar distancia aleatoria (0 o 1)
+    if (turno == 1) {
+        aplicar_dano($2, &vida_2, distancia); // Aplicar daño al jugador 2
+        turno = 2; // Cambiar el turno al jugador 2
+    } else {
+        aplicar_dano($2, &vida_1, distancia); // Aplicar daño al jugador 1
+        turno = 1; // Cambiar el turno al jugador 1
+    }
+    $$ = strdup($2);
+}
 
 accion: CORTE_DEBIL direccion { $$ = concat("Corte Débil ", $2); free($2); }
       | CORTE_MEDIO direccion { $$ = concat("Corte Medio ", $2); free($2); }
@@ -128,68 +142,42 @@ char* concat(const char* str1, const char* str2) {
     return result;
 }
 
-void aplicar_dano(const char *accion, int *vida) {
-
-    int distancia = rand() % 2; // Generar distancia aleatoria (0 o 1)
-
-
+void aplicar_dano(const char *accion, int *vida, int distancia) {
     printf("Distancia para el ataque '%s': %d\n", accion, distancia); // Imprimir distancia
-
-
     int danio = 0;
 
-
     // Asignar daño basado en la acción
-
-    if (strcmp(accion, "Corte Débil") == 0) {
-
+    if (strcmp(accion, "Corte Débil derecha") == 0 || strcmp(accion, "Corte Débil izquierda") == 0) {
         danio = 10;
-
-    } else if (strcmp(accion, "Corte Medio") == 0) {
-
+    } else if (strcmp(accion, "Corte Medio derecha") == 0 || strcmp(accion, "Corte Medio izquierda") == 0) {
         danio = 15;
-
-    } else if (strcmp(accion, "Corte Fuerte") == 0) {
-
+    } else if (strcmp(accion, "Corte Fuerte derecha") == 0 || strcmp(accion, "Corte Fuerte izquierda") == 0) {
         danio = 20;
-
-    } else if (strcmp(accion, "Patada Débil") == 0) {
-
+    } else if (strcmp(accion, "Patada Débil derecha") == 0 || strcmp(accion, "Patada Débil izquierda") == 0) {
         danio = 8;
-
-    } else if (strcmp(accion, "Patada Media") == 0) {
-
+    } else if (strcmp(accion, "Patada Media derecha") == 0 || strcmp(accion, "Patada Media izquierda") == 0) {
         danio = 12;
-
-    } else if (strcmp(accion, "Patada Fuerte") == 0) {
-
+    } else if (strcmp(accion, "Patada Fuerte derecha") == 0 || strcmp(accion, "Patada Fuerte izquierda") == 0) {
         danio = 18;
-
     } else if (strcmp(accion, "Especial con Poder Máximo") == 0) {
-
         danio = 30;
-
     }
-
 
     // Solo aplicar daño si el ataque es exitoso
-
     if (ataque_exitoso(distancia)) {
-
         *vida -= danio; // Aplicar daño
-
+        if (*vida < 0) {
+            *vida = 0; // Evitar valores negativos en la vida
+        }
         printf("Ataque exitoso: %s inflige %d puntos de daño.\n", accion, danio);
-
     } else {
-
         printf("Ataque fallido: %s no golpea.\n", accion);
-
     }
-
 }
 
+
 int ataque_exitoso(int distancia) {
-    return (distancia == 0); // Golpea si la distancia es 0
+    return distancia == 1; // El ataque tiene éxito si la distancia es 1
 }
 
 int main(int argc, char **argv) {
